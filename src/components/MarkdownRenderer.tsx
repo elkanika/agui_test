@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import { DynamicRenderer } from './dynamic/DynamicRenderer';
 
 interface MarkdownRendererProps {
     content: string;
@@ -20,6 +21,28 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
                 components={{
                     // Customize code blocks
                     code({ node, inline, className, children, ...props }: any) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        const lang = match ? match[1] : '';
+
+                        // Check for json-ui language
+                        if (!inline && lang === 'json-ui') {
+                            try {
+                                const contentStr = String(children).replace(/\n$/, '');
+                                const jsonData = JSON.parse(contentStr);
+
+                                if (jsonData && jsonData.type && jsonData.data) {
+                                    return (
+                                        <div className="my-4 not-prose is-json-ui">
+                                            <DynamicRenderer type={jsonData.type} data={jsonData.data} />
+                                        </div>
+                                    );
+                                }
+                            } catch (e) {
+                                console.error("Failed to parse json-ui block:", e);
+                                // Fallback to regular rendering if parse fails
+                            }
+                        }
+
                         return (
                             <code className={className} {...props}>
                                 {children}
@@ -27,6 +50,17 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
                         );
                     },
                     pre({ children }) {
+                        // Check if the child (result of code component) is our dynamic UI component
+                        try {
+                            const child = React.Children.only(children) as React.ReactElement;
+                            if (child && child.props && child.props.className && child.props.className.includes('is-json-ui')) {
+                                return <>{children}</>;
+                            }
+                        } catch (e) {
+                            // React.Children.only fails if there are multiple children or no children
+                            // ignore and render default pre
+                        }
+
                         return (
                             <pre className="bg-gray-100 p-3 rounded-lg overflow-x-auto my-2">
                                 {children}

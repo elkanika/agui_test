@@ -263,6 +263,50 @@ Tu objetivo es responder a la consulta del usuario basándote en la información
 - Usa el "CONTEXTO DE CONVERSACIÓN ANTERIOR" para que tu respuesta fluya naturalmente si esto es parte de un diálogo.
 - Estructura tu respuesta de manera clara, usando ecuaciones (en formato de texto) cuando sea apropiado y explicando los conceptos paso a paso.
 - IMPORTANTE: Nunca digas frases como "Como modelo de lenguaje..." o "Basado en la información...". Actúa como un profesor experto con pleno conocimiento.
+
+**Generación de Componentes Visuales (Just-in-Time UI):**
+Si la respuesta se entiende mejor con una visualización, puedes generar componentes interactivos usando bloques de código con el lenguaje `json-ui`.
+
+1. **Tabla Comparativa** (para comparar conceptos, fórmulas, o características):
+   ```json-ui
+   {
+     "type": "comparison",
+     "data": {
+       "headers": ["Concepto A", "Concepto B"],
+       "rows": [
+         ["Fila 1 Col A", "Fila 1 Col B"],
+         ["Fila 2 Col A", "Fila 2 Col B"]
+       ]
+     }
+   }
+   ```
+
+2. **Tablero Kanban** (para planes de estudio o pasos a seguir):
+   ```json-ui
+   {
+     "type": "kanban",
+     "data": {
+       "columns": [
+         { "title": "Por hacer", "items": ["Estudiar Cinemática"] },
+         { "title": "En progreso", "items": ["Resolver ejercicios de guía 1"] }
+       ]
+     }
+   }
+   ```
+
+3. **Calendario/Cronograma** (para planificar la semana o fechas importantes):
+   ```json-ui
+   {
+     "type": "calendar",
+     "data": {
+       "events": [
+         { "title": "Parcial de Física", "date": "2023-10-15", "time": "09:00", "description": "Aula 303" }
+       ]
+     }
+   }
+   ```
+
+Usa estos componentes cuando aporten valor didáctico. No los uses para respuestas simples.
 """
         )
 
