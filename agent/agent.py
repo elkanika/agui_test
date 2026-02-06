@@ -59,6 +59,8 @@ class AsistenteFisica:
         self.runner = None
         self.temario = ""
         self.contenido_completo = ""
+        self.loaded_pdfs = []
+        self.last_state = {}
 
         # Configuración de embedding
         self.model_name = "sentence-transformers/all-MiniLM-L6-v2"
@@ -439,10 +441,13 @@ TEMARIO DE FÍSICA:
         pdf_metadata = []
         global_id_counter = 0
 
+        self.loaded_pdfs = []
         for pdf_file in pdf_files:
             if not os.path.exists(pdf_file):
                 # print(f"⚠️ {pdf_file} no encontrado")
                 continue
+
+            self.loaded_pdfs.append(os.path.basename(pdf_file))
 
             # Procesar PDF
             text = self.leer_pdf(pdf_file)
@@ -638,6 +643,14 @@ TEMARIO DE FÍSICA:
                 "tiempo": tiempo_busqueda
             })
             print(f"✅ Búsqueda en Qdrant completada en {tiempo_busqueda:.2f}s")
+
+            # Actualizar estado mental
+            self.last_state = {
+                "clasificacion": clasificacion,
+                "consulta_busqueda": consulta_busqueda,
+                "documentos_encontrados": len(resultados_busqueda),
+                "timestamp": time.time()
+            }
 
             # --- Paso 4: Generar respuesta final ---
             inicio_paso = time.time()
@@ -882,6 +895,15 @@ add_adk_fastapi_endpoint(app, adk_fisica_agent, path="/")
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "agent": "AsistenteFisica"}
+
+@app.get("/api/state")
+async def get_agent_state():
+    """Devuelve el estado mental actual del agente"""
+    return {
+        "loaded_pdfs": asistente.loaded_pdfs,
+        "last_thought": asistente.last_state,
+        "temario_summary": asistente.temario[:100] + "..." if asistente.temario else "No cargado"
+    }
 
 if __name__ == "__main__":
     import uvicorn

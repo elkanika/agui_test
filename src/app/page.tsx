@@ -1,20 +1,26 @@
 // src/app/page.tsx
 "use client";
 
+import { useState } from "react";
 import { CopilotChat } from "@copilotkit/react-ui";
 import { useCopilotReadable } from "@copilotkit/react-core";
 import "@copilotkit/react-ui/styles.css";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Brain } from "lucide-react";
 import MarkdownRenderer from "../components/MarkdownRenderer";
+import MentalStatePanel from "../components/MentalStatePanel";
 
 export default function ChatPage() {
+  const [showMentalState, setShowMentalState] = useState(false);
+  const [studentInfo, setStudentInfo] = useState({
+    curso: "Física I",
+    universidad: "Universidad de Buenos Aires",
+    nivel: "Principiante"
+  });
+
   // Proporcionar contexto al agente (opcional)
   useCopilotReadable({
     description: "Información del estudiante",
-    value: {
-      curso: "Física I",
-      universidad: "Universidad de Buenos Aires",
-    },
+    value: studentInfo,
   });
 
   return (
@@ -36,18 +42,33 @@ export default function ChatPage() {
                 <p className="text-blue-100 text-xs sm:text-sm hidden xs:block">Universidad de Buenos Aires</p>
               </div>
             </div>
-            <div className="hidden sm:flex items-center space-x-2 bg-[#F7941D]/20 backdrop-blur-sm px-4 py-2 rounded-full">
-              <div className="w-2 h-2 bg-[#F7941D] rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium">Online</span>
+            <div className="flex items-center space-x-3">
+               <button
+                onClick={() => setShowMentalState(!showMentalState)}
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  showMentalState
+                    ? "bg-white text-[#003D7A]"
+                    : "bg-[#003D7A]/50 hover:bg-[#003D7A]/70 text-white border border-white/20"
+                }`}
+              >
+                <Brain className="w-4 h-4" />
+                <span className="hidden sm:inline">Estado Mental</span>
+              </button>
+
+              <div className="hidden sm:flex items-center space-x-2 bg-[#F7941D]/20 backdrop-blur-sm px-4 py-2 rounded-full">
+                <div className="w-2 h-2 bg-[#F7941D] rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium">Online</span>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Chat Container */}
-      <main className="flex-1 overflow-hidden bg-gray-50">
-        <CopilotChat
-          className="h-full"
+      <div className="flex-1 flex overflow-hidden">
+        {/* Chat Container */}
+        <main className="flex-1 overflow-hidden bg-gray-50 flex flex-col">
+          <CopilotChat
+            className="h-full"
           labels={{
             title: "Asistente de Física",
             initial:
@@ -76,15 +97,25 @@ export default function ChatPage() {
               "4. Al final, usa 'guardar_interaccion' para registrar la conversación"
             );
           }}
-          AssistantMessage={({ message }) => (
-            <div className="flex justify-start mb-4">
-              <div className="max-w-[80%] rounded-lg px-4 py-2 bg-white border border-gray-200">
-                <MarkdownRenderer content={typeof message === 'string' ? message : message.content || ''} />
+            AssistantMessage={({ message }) => (
+              <div className="flex justify-start mb-4">
+                <div className="max-w-[80%] rounded-lg px-4 py-2 bg-white border border-gray-200">
+                  <MarkdownRenderer content={typeof message === 'string' ? message : message.content || ''} />
+                </div>
               </div>
-            </div>
-          )}
-        />
-      </main>
+            )}
+          />
+        </main>
+
+        {/* Panel Lateral de Estado Mental */}
+        {showMentalState && (
+          <MentalStatePanel
+            isOpen={showMentalState}
+            studentInfo={studentInfo}
+            onUpdateStudentInfo={setStudentInfo}
+          />
+        )}
+      </div>
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 px-4 py-3">
